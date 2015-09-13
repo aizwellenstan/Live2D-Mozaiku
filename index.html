@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Live2D Simple</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=4.0">
+    </meta>
+</head>
+<!-- オフスクリーンの頂点シェーダー -->
+<script id="vs" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec4 color;
+attribute vec2 textureCoord;
+uniform   mat4 mvpMatrix;
+uniform   bool reversal;
+varying   vec4 vColor;
+varying   vec2 vTextureCoord;
+
+void main(void){
+    vColor = color;
+    // trueならシェーダーで上下反転させる
+    if(reversal){
+        vTextureCoord = vec2(textureCoord.x, 1.0 - textureCoord.y);
+    }else{
+        vTextureCoord = textureCoord;
+    }
+    gl_Position   = mvpMatrix * vec4(position, 1.0);
+}
+</script>
+<!-- オフスクリーンのフラグメントシェーダー -->
+<script id="fs" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform bool      multi_tex;
+varying vec4      vColor;
+varying vec2      vTextureCoord;
+
+void main(void){
+    if(multi_tex){
+        vec4 smpColor0 = texture2D(texture0, vTextureCoord);
+        vec4 smpColor1 = texture2D(texture1, vTextureCoord);
+        vec3 destColor = mix(smpColor0.rgb, smpColor1.rgb, smpColor1.a);
+        gl_FragColor = vec4(destColor, 1.0);
+//        gl_FragColor  = smpColor0 * smpColor1;
+    }else{
+        vec4 smpColor0 = texture2D(texture0, vTextureCoord);
+        gl_FragColor  = vColor * smpColor0;
+    }
+}
+</script>
+<!-- 頂点シェーダー(図形描画) -->
+<script id="object_vs" type="x-shader/x-vertex">
+attribute vec3 position;
+uniform   mat4 mvpMatrix;
+
+void main(void){
+    gl_Position   = mvpMatrix * vec4(position, 1.0);
+}
+</script>
+<!-- フラグメントシェーダー(図形描画) -->
+<script id="object_fs" type="x-shader/x-fragment">
+precision mediump float;
+
+void main(void){
+    gl_FragColor  = vec4(1.0, 1.0, 1.0, 1.0);
+}
+</script>
+<!-- 頂点シェーダー(モザイク) -->
+<script id="effect_vs" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec4 color;
+attribute vec2 textureCoord;
+uniform   mat4 mvpMatrix;
+varying   vec4 vColor;
+varying   vec2 vTextureCoord;
+
+void main(void){
+    vColor        = color;
+    vTextureCoord = textureCoord;
+    // シェーダーで上下反転させる
+//    vTextureCoord = vec2(textureCoord.x, 1.0 - textureCoord.y);
+    gl_Position   = mvpMatrix * vec4(position, 1.0);
+}
+
+</script>
+<!-- フラグメントシェーダー(モザイク) -->
+<script id="effect_fs" type="x-shader/x-fragment">
+// モザイクシェーダー
+precision mediump float;
+
+uniform sampler2D texture;
+varying vec4      vColor;
+varying vec2      vTextureCoord;
+
+void main(void){
+    vec2 uv = vTextureCoord;
+    uv = floor(uv * 50.0) / 50.0;
+    vec4 color = texture2D(texture, uv);
+    gl_FragColor = color;
+}
+</script>
+<body>
+    <p style="text-align:center;width:512px;height:10px;">canvasクリックでモーション切り替え</p>
+    <canvas id="glcanvas" style="border:dashed 1px #CCC;float:left;"></canvas>
+    <p>
+        ＜モザイクするパーツ＞
+        <br>
+        <input type="radio" name="mozaiku" value="obj1" onClick="radiochange(value)" checked="checked">上半身パーツ
+        <br>
+        <input type="radio" name="mozaiku" value="obj2" onClick="radiochange(value)">目のパーツ
+        <br>
+        <input type="radio" name="mozaiku" value="obj3" onClick="radiochange(value)">手のパーツ
+        <br>
+        <input type="radio" name="mozaiku" value="obj4" onClick="radiochange(value)">下半身パーツ
+    </p>
+    <!-- Live2D Library -->
+    <script src="//simplecode.jp/Live2D_DragDrop/lib/live2d.min.js"></script>
+    <script src="//simplecode.jp/Live2D_DragDrop/framework/Live2DFramework.js"></script>
+    <!-- 行列計算用 -->
+    <script src="src/minMatrix.js"></script>
+    <!-- User's Script -->
+    <script src="src/Simple.js"></script>
+</body>
+</html>

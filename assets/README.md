@@ -1,0 +1,2 @@
+# Live2D_Mozaiku
+ここにLive2D Modelファイルとモーションを配置する
