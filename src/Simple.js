@@ -134,6 +134,8 @@ Simple.prototype.initLoop = function(can/*HTML5 canvasオブジェクト*/)
         console.error("Failed to create WebGL context.");
         return;
     }
+    // OpenGLのコンテキストをセット
+    Live2D.setGL(gl);
 
     // 描画エリアを白でクリア
     gl.clearColor( 1.0 , 1.0 , 1.0 , 1.0 );
@@ -236,9 +238,6 @@ Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
         // テクスチャの元画像の参照をクリア
         that.loadedImages = null;
 
-        // OpenGLのコンテキストをセット
-        that.live2DModel.setGL(gl);
-
         // 表示位置を指定するための行列を定義する
         var w = that.live2DModel.getCanvasWidth();
         var h = that.live2DModel.getCanvasHeight();
@@ -308,6 +307,7 @@ Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
 
     //------------ 表示する画像の描画 ------------//
     // フレームバッファのテクスチャをバインド
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, ftexture[0]);
     // シェーダー切り替え
     gl.useProgram(that.off_prg);
